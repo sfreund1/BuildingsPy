@@ -221,6 +221,15 @@ class _BaseSimulator(object):
         self._simulator_.update(resultFile=resultFile)
         return
 
+    def getResultFile(self, resultFile):
+        """Sets the name of the result file (without extension).
+
+        :param resultFile: The name of the result file (without extension).
+
+        """
+        import os
+        return os.path.join(self._outputDir_, self._simulator_['resultFile'])
+
     def printModelAndTime(self):
         """ Prints the current time and the model name to the standard output.
 
