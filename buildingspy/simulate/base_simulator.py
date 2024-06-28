@@ -221,14 +221,15 @@ class _BaseSimulator(object):
         self._simulator_.update(resultFile=resultFile)
         return
 
-    def getResultFile(self, resultFile):
-        """Sets the name of the result file (without extension).
+    def getResultFile(self):
+        """Gets the name of the result file (with extension).
 
         :param resultFile: The name of the result file (without extension).
 
         """
         import os
-        return os.path.join(self._outputDir_, self._simulator_['resultFile'])
+        return os.path.join(self._outputDir_, self._simulator_['resultFile']
+                            + '.mat')
 
     def printModelAndTime(self):
         """ Prints the current time and the model name to the standard output.
@@ -328,14 +329,19 @@ class _BaseSimulator(object):
         import os
         import tempfile
         import getpass
-        if self._packagePath is None:
-            curDir = os.path.abspath(self._packagePath)
-        else:
-            curDir = os.path.abspath(".")
+        from pathlib import Path
+
+        # if self._packagePath is None:
+        #     curDir = os.path.abspath(self._packagePath)
+        # else:
+        curDir = os.path.abspath(".")
         ds = curDir.split(os.sep)
         dirNam = ds[len(ds) - 1]
         worDir = os.path.join(tempfile.mkdtemp(
-            prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
+            prefix='tmp-simulator-', dir=Path('C:\Entwicklung\Temp')))
+
+        # worDir = os.path.join(tempfile.mkdtemp(
+        #     prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
         return worDir
 
     def _declare_parameters(self):
