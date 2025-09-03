@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #######################################################
@@ -249,7 +250,8 @@ class Tester(object):
         tol=1E-3,
         skip_verification=False,
         color=False,
-        rewriteConfigurationFile=False
+        rewriteConfigurationFile=False,
+        tempDir=None
     ):
         import platform
 
@@ -292,6 +294,9 @@ class Tester(object):
 
         # Number of data points that are used
         self._nPoi = 101
+
+        # Base temporary directory
+        self._tempDir = tempDir
 
         # List of temporary directories that are used to run the simulations.
         self._temDir = []
@@ -955,6 +960,7 @@ class Tester(object):
             # Hence, set the default values, which may be overridden just below.
             dat["startTime"] = 0
             dat["stopTime"] = 1
+            dat["tolerance"] = 1e-4
 
             # Set the startTime, if present
             for key in ["startTime", "stopTime"]:
@@ -965,6 +971,17 @@ class Tester(object):
                         dat[f"{key}"] = float(val.groupdict()['value'])
                     except BaseException:
                         err = f"Failed to parse value of '{key}' to float."
+                        return dat, err
+
+            # Set the tolerance, if present:
+            for key in ["tolerance"]:
+                match = re.search(r'tolerance=([\d.]+)', mos_content)
+                tolerance_value = float(match.group(1)) if match else None
+                if tolerance_value:
+                    try:
+                        dat[f"{key}"] = tolerance_value
+                    except BaseException:
+                        err = f"Failed to parse the value if {key} to float."
                         return dat, err
 
         # Check if this model need to be translated as an FMU.
@@ -1038,13 +1055,13 @@ class Tester(object):
                     # for OpenModelica and OPTIMICA.
                     # Only get the tolerance for the models that need to be simulated,
                     # because those that are only exported as FMU don't need this setting.
-                    if not dat['dymola']['exportFMU']:
-                        try:
-                            dat['tolerance'] = self.get_tolerance(
-                                self._libHome, dat['model_name'])
-                        except Exception as e:
-                            self._reporter.writeError(str(e))
-                            dat['tolerance'] = None
+                    # if not dat['dymola']['exportFMU']:
+                    #     try:
+                    #         dat['tolerance'] = self.get_tolerance(
+                    #             self._libHome, dat['model_name'])
+                    #     except Exception as e:
+                    #         self._reporter.writeError(str(e))
+                    #         dat['tolerance'] = None
                     # For FMU export, if model_name="", then Dymola uses the
                     # Modelica class name, with "." replaced by "_".
                     # If the Modelica class name consists of "_", then they
@@ -3782,7 +3799,7 @@ exit();
         for iPro in range(self._nPro):
             # print("Calling parallel loop for iPro={}, self._nPro={}".format(iPro, self._nPro))
             dirNam = tempfile.mkdtemp(
-                prefix='tmp-' + self.getLibraryName() + '-' + str(iPro) + "-")
+                prefix='tmp-' + self.getLibraryName() + '-' + str(iPro) + "-", dir=self._tempDir)
             self._temDir.append(dirNam)
             # Directory that contains the library as a sub directory
             libDir = self._libHome
